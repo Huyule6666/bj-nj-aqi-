@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>北京 · 南京空气质量监测</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="viz-root">
+<header class="page-header">
+  <h1>北京 · 南京空气质量监测</h1>
+  <p class="subtitle">
+    实时浓度、周边城市与官方每日 AQI 来自中国环境监测总站发布平台（air.cnemc.cn），北京实时数据在总站平台
+    不可达时由北京市生态环境监测中心（zx.bjmemc.com.cn）兜底；历史日均浓度（PM2.5/PM10/SO₂/NO₂/CO、O3-8h）
+    官方不公开历史值，暂以 Open-Meteo CAMS 模型数据补采并标注「模型数据」；天气来自 Open-Meteo。数据仅供个人参考。
+  </p>
+</header>
+
+<!-- 筛选行 -->
+<div class="filter-bar">
+  <div class="presets" id="presets">
+    <button data-days="7">近7天</button>
+    <button data-days="30">近30天</button>
+    <button data-days="60">近60天</button>
+    <button data-days="0">全部</button>
+  </div>
+  <div class="custom-range">
+    <input type="date" id="date-start" aria-label="起始日期">
+    <span class="range-sep">至</span>
+    <input type="date" id="date-end" aria-label="结束日期">
+  </div>
+  <div class="filter-actions">
+    <button id="btn-collect" class="btn">立即补采</button>
+    <button id="btn-refresh" class="btn btn-ghost">刷新</button>
+  </div>
+  <div class="filter-note" id="filter-note"></div>
+</div>
+
+<!-- KPI 卡 -->
+<section class="kpi-row" id="kpi-row"></section>
+
+<!-- 每城图表 -->
+<section class="city-charts" id="city-charts"></section>
+
+<!-- 双城对比 -->
+<section class="panel">
+  <div class="panel-head">
+    <h2>北京 vs 南京</h2>
+    <select id="compare-metric" aria-label="对比指标">
+      <option value="aqi">AQI</option>
+      <option value="pm25">PM2.5</option>
+      <option value="pm10">PM10</option>
+      <option value="o3_8h">O3-8h</option>
+    </select>
+  </div>
+  <div class="chart-box"><canvas id="chart-compare"></canvas></div>
+</section>
+
+<!-- 周边城市实时 -->
+<section class="panel">
+  <div class="panel-head">
+    <h2>周边城市实时</h2>
+    <span class="muted" id="around-time"></span>
+  </div>
+  <div class="around-groups" id="around-groups"></div>
+</section>
+
+<!-- 天气 -->
+<section class="panel">
+  <div class="panel-head"><h2>天气</h2><span class="muted">Open-Meteo</span></div>
+  <div class="weather-row" id="weather-row"></div>
+</section>
+
+<!-- 数据明细（可访问性兜底） -->
+<section class="panel">
+  <details>
+    <summary>数据明细表（北京）</summary>
+    <div class="table-wrap"><table id="table-北京"></table></div>
+  </details>
+  <details>
+    <summary>数据明细表（南京）</summary>
+    <div class="table-wrap"><table id="table-南京"></table></div>
+  </details>
+</section>
+
+<!-- 状态角标 -->
+<footer class="status-bar" id="status-bar">正在加载…</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0
+apscheduler>=3.10,<4.0
+akshare>=1.16,<2.0
+pandas>=2.2,<3.0
+requests>=2.32,<3.0
+tzdata>=2025.1
+pycryptodome>=3.20,<4.0

@@ -1,0 +1,5 @@
+# GitHub Actions 采集器精简依赖（不含 akshare/fastapi/uvicorn）
+requests>=2.32,<3.0
+pandas>=2.2,<3.0
+pycryptodome>=3.20,<4.0
+tzdata>=2025.1
