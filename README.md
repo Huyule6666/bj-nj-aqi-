@@ -16,6 +16,13 @@
 **免责声明**：本工具仅用于个人参考。官方平台接口非公开文档、可能改版（字段名依据其前端 JS 推断）；
 模型数据与官方监测值存在系统性偏差。真气网（aqistudy）接口当前改版失效，若恢复会自动升级浓度数据。
 
+## 在线部署（GitHub Actions，无需常开电脑）
+
+- 采集：`.github/workflows/collect.yml` 每 6 小时运行 `python collect.py`，数据写入 `data/aqi.db` 并提交回仓库
+- 展示：`.github/workflows/deploy.yml` 把 `static/` 部署到 GitHub Pages
+- 需在仓库 Settings → Pages → Source 选 "GitHub Actions"
+- 本地推送到 GitHub 需配置代理（若 github.com 不可达）：`git config http.proxy http://127.0.0.1:端口`
+
 ## 运行
 
 要求 **Python 3.11 或 3.12**（py-mini-racer 的 Windows wheel 最稳；3.13+ 可能安装失败）。
