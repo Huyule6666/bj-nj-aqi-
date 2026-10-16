@@ -232,6 +232,64 @@ def get_weather(city: str | None = None, start: str | None = None, end: str | No
         return [dict(r) for r in conn.execute(sql, params)]
 
 
+# ---------------------------------------------------------------- hourly_air
+
+_HOURLY_COLS = (
+    "city", "dt", "aqi", "quality", "primary_pollutant",
+    "pm25", "pm10", "so2", "no2", "co", "o3", "updated_at",
+)
+
+
+def upsert_hourly(city: str, rows: Iterable[dict[str, Any]]) -> int:
+    """写入逐小时数据（幂等 upsert）。"""
+    rows = list(rows)
+    if not rows:
+        return 0
+    with get_conn() as conn:
+        conn.executemany(
+            f"""INSERT INTO hourly_air ({", ".join(_HOURLY_COLS)})
+                VALUES ({", ".join(":" + c for c in _HOURLY_COLS)})
+                ON CONFLICT(city, dt) DO UPDATE SET
+                  aqi=excluded.aqi, quality=excluded.quality,
+                  primary_pollutant=excluded.primary_pollutant,
+                  pm25=excluded.pm25, pm10=excluded.pm10, so2=excluded.so2,
+                  no2=excluded.no2, co=excluded.co, o3=excluded.o3,
+                  updated_at=excluded.updated_at""",
+            [{
+                "city": city,
+                "dt": r["dt"],
+                "aqi": r.get("aqi"),
+                "quality": r.get("quality"),
+                "primary_pollutant": r.get("primary"),
+                "pm25": r.get("pm25"),
+                "pm10": r.get("pm10"),
+                "so2": r.get("so2"),
+                "no2": r.get("no2"),
+                "co": r.get("co"),
+                "o3": r.get("o3"),
+                "updated_at": r.get("updated_at"),
+            } for r in rows],
+        )
+        return conn.total_changes
+
+
+def get_hourly(city: str | None = None, start: str | None = None, end: str | None = None) -> list[dict]:
+    sql = "SELECT * FROM hourly_air WHERE 1=1"
+    params: list[Any] = []
+    if city:
+        sql += " AND city=?"
+        params.append(city)
+    if start:
+        sql += " AND dt>=?"
+        params.append(start)
+    if end:
+        sql += " AND dt<=?"
+        params.append(end)
+    sql += " ORDER BY dt"
+    with get_conn() as conn:
+        return [dict(r) for r in conn.execute(sql, params)]
+
+
 # ---------------------------------------------------------------- job_runs
 
 def log_job(job: str, started_at: str, finished_at: str, status: str, message: str = "") -> int:

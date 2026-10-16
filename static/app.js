@@ -27,6 +27,7 @@ const COMPARE_METRICS = {
 // ---------- 状态 ----------
 let CITIES = [];
 let dailyByCity = {};   // 城市 -> 全部日行（升序）
+let hourlyByCity = {};  // 城市 -> 逐小时行
 let range = { start: null, end: null };
 let charts = {};
 
@@ -62,6 +63,7 @@ async function loadAll() {
     const data = await fetchJson("site_data.json");
     CITIES = data.meta.cities;
     dailyByCity = data.daily || {};
+    hourlyByCity = data.hourly || {};
     renderKpi(data.latest);
     renderAround(data.around);
     renderWeather(data.weather);
@@ -254,7 +256,9 @@ function renderCharts() {
           <div class="chart-box"><canvas id="chart-co-${city}"></canvas></div></div>
         <div><h4 class="sub-title">O3-8h：官方 vs 模型</h4>
           <div class="chart-box"><canvas id="chart-o3-${city}"></canvas></div></div>
-      </div>`;
+      </div>
+      <h4 class="sub-title" style="margin-top:14px">近 24 小时逐小时 AQI（监测总站官方）</h4>
+      <div class="chart-box" style="height:200px"><canvas id="chart-hour-${city}"></canvas></div>`;
     container.appendChild(panel);
 
     if (!rows.length) continue;
@@ -342,6 +346,31 @@ function renderCharts() {
       },
       options: o3Opts,
     });
+
+    // 近 24 小时逐小时 AQI
+    const hrows = hourlyByCity[city] || [];
+    if (hrows.length) {
+      const hOpts = baseOptions();
+      hOpts.plugins.legend.display = false;
+      hOpts.plugins.tooltip.callbacks = {
+        label: (ctx) => {
+          const r = hrows[ctx.dataIndex];
+          const lv = levelOf(r.aqi);
+          return `AQI ${r.aqi}（${lv ? lv.label : "—"}）· PM2.5 ${r.pm25 ?? "—"} · PM10 ${r.pm10 ?? "—"}`;
+        },
+      };
+      hOpts.scales.y.suggestedMax = 300;
+      hOpts.scales.y.title = yTitle("AQI");
+      makeChart(`chart-hour-${city}`, {
+        type: "line",
+        data: {
+          labels: hrows.map((r) => r.dt.slice(5)),
+          datasets: [lineDs("AQI", hrows.map((r) => r.aqi), "--series-1")],
+        },
+        options: hOpts,
+        plugins: [aqiBandsPlugin],
+      });
+    }
   }
 
   renderCompareChart();

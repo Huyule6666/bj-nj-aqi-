@@ -53,6 +53,22 @@ CREATE TABLE IF NOT EXISTS daily_weather (
     PRIMARY KEY (city, date)
 );
 
+CREATE TABLE IF NOT EXISTS hourly_air (      -- 监测总站逐小时 AQI + 浓度（最近 24 小时）
+    city              TEXT NOT NULL,
+    dt                TEXT NOT NULL,          -- 'YYYY-MM-DD HH:00' 北京时间整点
+    aqi               REAL,
+    quality           TEXT,
+    primary_pollutant TEXT,
+    pm25              REAL,
+    pm10              REAL,
+    so2               REAL,
+    no2               REAL,
+    co                REAL,                   -- mg/m³
+    o3                REAL,                   -- µg/m³（小时值）
+    updated_at        TEXT NOT NULL,
+    PRIMARY KEY (city, dt)
+);
+
 CREATE TABLE IF NOT EXISTS job_runs (        -- 任务运行日志（/api/status 数据源）
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     job TEXT,

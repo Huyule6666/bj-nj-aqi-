@@ -150,6 +150,7 @@ def run_backfill():
 
         run_weather_backfill()
         _fetch_cnemc_daily()
+        _fetch_cnemc_hourly()
         try:
             run_realtime()
         except Exception as e:  # noqa: BLE001
@@ -190,6 +191,7 @@ def run_daily():
 
         run_weather_backfill()
         _fetch_cnemc_daily()
+        _fetch_cnemc_hourly()
         _upgrade_scan()
         return f"新增官方 {n} 行"
 
@@ -283,7 +285,7 @@ def run_realtime():
 
 
 def _fetch_cnemc_daily(end_date: str | None = None, quiet: bool = False) -> int:
-    """拉取监测总站官方每日 AQI，写入 daily_air.aqi_official（不动模型浓度列）。"""
+    """拉取监测总站官方每日 AQI + 浓度（最近约 14 天），写入 daily_air 官方列。"""
     end = end_date or _yesterday()
     n = 0
     for c in config.CITIES:
@@ -293,11 +295,30 @@ def _fetch_cnemc_daily(end_date: str | None = None, quiet: bool = False) -> int:
             rows = [r for r in rows
                     if r.get("date") and config.BACKFILL_START <= r["date"] <= end]
             if rows:
-                n += repo.upsert_official_aqi(city, rows)
-                logger.info("%s 官方每日 AQI %d 行", city, len(rows))
+                n += repo.upsert_official_daily(city, rows)
+                logger.info("%s 官方每日 AQI+浓度 %d 行", city, len(rows))
         except Exception as e:  # noqa: BLE001
             if not quiet:
                 logger.warning("%s 官方每日 AQI 拉取失败: %s", city, e)
+    return n
+
+
+def _fetch_cnemc_hourly(quiet: bool = False) -> int:
+    """拉取监测总站逐小时 AQI + 浓度（最近 24 小时），写入 hourly_air。"""
+    updated = _now_iso()
+    n = 0
+    for c in config.CITIES:
+        city = c["name"]
+        try:
+            rows = cnemc_client.fetch_city_hourly_history(config.CNEMC_CITY_CODES[city])
+            if rows:
+                for r in rows:
+                    r["updated_at"] = updated
+                n += repo.upsert_hourly(city, rows)
+                logger.info("%s 逐小时 %d 条", city, len(rows))
+        except Exception as e:  # noqa: BLE001
+            if not quiet:
+                logger.warning("%s 逐小时拉取失败: %s", city, e)
     return n
 
 
@@ -332,6 +353,7 @@ def run_collect_lean():
             except Exception as e:  # noqa: BLE001
                 logger.warning("%s 模型补采失败: %s", city, e)
         _fetch_cnemc_daily()
+        _fetch_cnemc_hourly()
         run_weather_backfill()
         try:
             run_realtime()
@@ -353,9 +375,10 @@ def run_cnemc_recovery():
         repo.log_job("cnemc_recovery", _now_iso(), _now_iso(), "ok",
                      f"官方平台已恢复，补采官方 AQI {n} 行")
         try:
+            _fetch_cnemc_hourly(quiet=True)
             run_realtime()
         except Exception as e:  # noqa: BLE001
-            logger.warning("恢复后实时快照失败: %s", e)
+            logger.warning("恢复后实时/逐小时采集失败: %s", e)
 
 
 def run_weather_backfill():

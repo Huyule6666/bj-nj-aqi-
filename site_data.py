@@ -42,6 +42,7 @@ def build_site_data() -> dict:
             "backfill_start": config.BACKFILL_START,
         },
         "daily": {c: repo.get_daily(c) for c in cities},
+        "hourly": {c: repo.get_hourly(c) for c in cities},
         "latest": latest,
         "around": around,
         "weather": {c: {"city": c, "today": today, "rows": repo.get_weather(c)} for c in cities},
