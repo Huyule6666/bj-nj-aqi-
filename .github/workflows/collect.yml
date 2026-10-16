@@ -3,7 +3,7 @@ name: collect-aqi
 # 定时采集数据并提交回仓库（提交会触发 deploy.yml 部署静态站点）
 on:
   schedule:
-    - cron: "0 */6 * * *"   # 每 6 小时（UTC）：08/14/20/02 时（北京时间）
+    - cron: "0 */2 * * *"   # 每 2 小时（UTC 整点）
   workflow_dispatch: {}      # 手动触发
 
 permissions:
