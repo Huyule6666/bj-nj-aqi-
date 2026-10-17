@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>空气质量</title>
+    <script type="text/javascript">
+        var browserName = navigator.userAgent;
+        var browserType = "unknown";
+        if (navigator.userAgent.indexOf("Trident") > 0) {
+            browserType = "Trident";
+        }
+        if (navigator.userAgent.indexOf("Presto") > 0) {
+            browserType = "Presto";
+        }
+        if (navigator.userAgent.indexOf("WebKit") > 0) {
+            browserType = "WebKit";
+        }
+        if (navigator.userAgent.indexOf("Gecko") > 0) {
+            browserType = "Gecko";
+        }
+
+        if (navigator.appName == "Microsoft Internet Explorer" && (navigator.appVersion.split(";")[1].replace(/[ ]/g, "") == "MSIE6.0" || navigator.appVersion.split(";")[1].replace(/[ ]/g, "") == "MSIE7.0" || navigator.appVersion.split(";")[1].replace(/[ ]/g, "") == "MSIE8.0")) {
+            browserType = "unknown";
+        }
+        if (browserType == "unknown") {
+            window.showModalDialog('alert.html', 'dialogWidth:200px;dialogHeight:200px;dialogLeft:200px;dialogTop:150px;center:yes;help:yes;resizable:yes;status:yes');
+        }
+
+        var dojoConfig = {
+            has: {
+                "dojo-firebug": true,
+                "dojo-debug-messages": true
+            },
+            async: true, parseOnLoad: false,
+            map: null, xmin: 108.59454345703148, ymin: 28.0545654296875, xmax: 129.68829345703148, ymax: 38.6234130859375,
+            busy: null, area: [], level: 8,
+            packages: [
+                { name: "controls", location: "/sjzx/controls" },
+                { name: "layers", location: "/sjzx/layers" }
+            ]
+        };
+    </script>
+    <link rel="stylesheet" href="http://218.94.78.75:20001/arcgis_js_api/3.17/dijit/themes/claro/claro.css" />    
+    <link rel="stylesheet" href="http://218.94.78.75:20001/arcgis_js_api/3.17/esri/css/esri.css" />
+    <link id="customStyle" href="index.css" rel="stylesheet" />
+</head>
+<body class="claro">
+    <div id="main">
+        <div id="header">
+            <div id="logo"></div>
+            <div id="title" style="background-image:url('images/空气质量标题.png');width:461px;height:67px;background-size:461px 67px;"></div>
+            <script>
+                function resize() {
+                    var css = document.querySelector("#customStyle");
+                    if (document.body.clientHeight < 700) {
+                        css.setAttribute("href", "index_small.css");
+                        document.querySelector("#title").style.width = "304px";
+                        document.querySelector("#title").style.height = "31px";
+                        document.querySelector("#title").style.backgroundSize = "304px 31px";
+                    }
+                    else {
+                        css.setAttribute("href", "index.css");
+                        document.querySelector("#title").style.width = "461px";
+                        document.querySelector("#title").style.height = "47px";
+                        document.querySelector("#title").style.backgroundSize = "461px 47px";
+                    }
+                }
+                window.onresize = function () { resize(); }
+                resize();
+            </script>
+            <div id="bg_img"></div>
+        </div>
+        <div id="content" style="top:100px;">
+            <div id="map"></div>
+            <div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'">
+                <div id="basemaptoggle"></div>
+                <div id="accordion"></div>
+                <div id="legend"></div>
+                <div id="navigator"></div>
+                <div id="sidebutton"></div>
+                <div id="sidepanel"></div>
+                <div id="factor"></div>
+                <div id="datetime"></div>
+            </div>
+        </div>
+        <div id="footer"><a href="#">网站声明</a>&nbsp;|&nbsp;<a href="#">网站地图</a>&nbsp;|&nbsp;<a href="#">联系我们</a>&nbsp;&nbsp;&nbsp;&nbsp;ICP备案编号：苏ICP备-000509<br />
+            技术支持：江苏省环境信息中心&nbsp;&nbsp;联系地址：南京市江东北路176号&nbsp;&nbsp;邮编：210036&nbsp;&nbsp;电子邮件：xxzx@jshb.gov.cn
+        </div>
+    </div>
+    <div id="busyIndicator"><img src='images/loading.gif' /></div>
+    
+    <script src="extras/linq.js"></script>
+    <script src="extras/global.js"></script>
+    <script src="extras/echarts.min.js"></script>
+    <script src="http://218.94.78.75:20001/arcgis_js_api/3.17/init.js"></script>
+    <script src="airquality.js"></script>
+</body>
+</html>
