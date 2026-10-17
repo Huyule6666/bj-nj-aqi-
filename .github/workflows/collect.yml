@@ -1,6 +1,6 @@
 name: collect-aqi
 
-# 定时采集数据并提交回仓库（提交会触发 deploy.yml 部署静态站点）
+# 定时采集数据 → 提交回仓库 → 立即部署 GitHub Pages
 on:
   schedule:
     - cron: "0 */2 * * *"   # 每 2 小时（UTC 整点）
@@ -8,10 +8,19 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   collect:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,3 +45,15 @@ jobs:
             git commit -m "data: 自动采集 $(date -u +%Y-%m-%dT%H:%MZ)"
             git push
           fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: static
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
