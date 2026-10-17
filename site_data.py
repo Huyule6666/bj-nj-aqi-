@@ -16,7 +16,6 @@ def build_site_data() -> dict:
     today = datetime.now(config.TZ).date().isoformat()
 
     realtime = {r["city"]: r for r in repo.get_realtime(cities)}
-    rt_all = {r["city"]: r for r in repo.get_realtime(config.ALL_SNAPSHOT_CITIES)}
 
     latest = {
         "captured_at": repo.get_realtime_captured_at(),
@@ -24,13 +23,6 @@ def build_site_data() -> dict:
         "cities": {
             c: {"realtime": realtime.get(c), "latest_daily": repo.get_latest_daily(c)}
             for c in cities
-        },
-    }
-    around = {
-        "captured_at": repo.get_realtime_captured_at(),
-        "groups": {
-            target: [rt_all[n] for n in names if n in rt_all]
-            for target, names in config.SURROUNDING.items()
         },
     }
     return {
@@ -42,9 +34,7 @@ def build_site_data() -> dict:
             "backfill_start": config.BACKFILL_START,
         },
         "daily": {c: repo.get_daily(c) for c in cities},
-        "hourly": {c: repo.get_hourly(c) for c in cities},
         "latest": latest,
-        "around": around,
         "weather": {c: {"city": c, "today": today, "rows": repo.get_weather(c)} for c in cities},
         "status": {
             "job_runs": repo.get_job_runs(20),

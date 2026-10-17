@@ -233,7 +233,6 @@ def run_realtime():
     def _run() -> str:
         captured = _now_iso()
         snapshot = []
-        target_names = {c["name"] for c in config.CITIES}
         # 目标城市实时详情（含浓度）；北京在监测总站平台不可达时由北京市监测中心兜底
         for c in config.CITIES:
             info = None
@@ -258,24 +257,6 @@ def run_realtime():
                     "pm25": info["pm25"], "primary_pollutant": info["primary_pollutant"],
                     "captured_at": captured,
                 })
-        # 周边城市：全国快照按名匹配
-        try:
-            allc = cnemc_client.fetch_all_cities_realtime()
-            by_name = {r["area"].replace("市", ""): r for r in allc if r.get("area")}
-            for name_cn in config.ALL_SNAPSHOT_CITIES:
-                if name_cn in target_names:
-                    continue
-                r = by_name.get(name_cn)
-                if not r:
-                    continue
-                snapshot.append({
-                    "city": name_cn, "province": None,
-                    "aqi": r["aqi"], "quality": r["quality"],
-                    "pm25": None, "primary_pollutant": r["primary_pollutant"],
-                    "captured_at": captured,
-                })
-        except Exception as e:  # noqa: BLE001
-            logger.warning("CNEMC 全国快照失败: %s", e)
         if not snapshot:
             raise ValueError("CNEMC 未匹配到任何目标城市")
         repo.replace_realtime(snapshot)
