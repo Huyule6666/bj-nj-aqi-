@@ -32,6 +32,8 @@ jobs:
         run: pip install -r requirements-collect.txt
 
       - name: 采集数据
+        env:
+          WAQI_TOKEN: ${{ secrets.WAQI_TOKEN }}
         run: python collect.py
 
       - name: 提交数据

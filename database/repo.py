@@ -159,16 +159,19 @@ def counts_by_source() -> dict[str, int]:
 # ---------------------------------------------------------------- realtime
 
 def replace_realtime(rows: Iterable[dict[str, Any]]) -> None:
-    """整表替换实时快照。"""
+    """逐城 upsert 实时快照（采不到的城保留旧值，不删除）。"""
     rows = list(rows)
     if not rows:
         return
     with get_conn() as conn:
-        conn.execute("DELETE FROM realtime_air")
         conn.executemany(
-            "INSERT INTO realtime_air (city, province, aqi, quality, pm25, "
-            "primary_pollutant, captured_at) VALUES "
-            "(:city, :province, :aqi, :quality, :pm25, :primary_pollutant, :captured_at)",
+            """INSERT INTO realtime_air (city, province, aqi, quality, pm25,
+                                          primary_pollutant, captured_at)
+               VALUES (:city, :province, :aqi, :quality, :pm25, :primary_pollutant, :captured_at)
+               ON CONFLICT(city) DO UPDATE SET
+                 province=excluded.province, aqi=excluded.aqi, quality=excluded.quality,
+                 pm25=excluded.pm25, primary_pollutant=excluded.primary_pollutant,
+                 captured_at=excluded.captured_at""",
             rows,
         )
 

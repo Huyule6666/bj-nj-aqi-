@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 import config
 import cn_aqi
-from collector import aqistudy_client, bjmemc_client, cnemc_client, openmeteo_client
+from collector import aqistudy_client, bjmemc_client, cnemc_client, openmeteo_client, waqi_client
 from database import repo
 
 logger = logging.getLogger("backfill")
@@ -250,6 +250,19 @@ def run_realtime():
                     logger.info("北京实时数据来自北京市生态环境监测中心（站点 %d 个）", bj["station_count"])
                 except Exception as e:  # noqa: BLE001
                     logger.warning("bjmemc 北京兜底失败: %s", e)
+            if info is None:
+                # WAQI 兜底（全球可访问，数据转自监测总站）；token 为 demo 时跳过
+                try:
+                    name_en = config.WAQI_CITY_NAMES.get(c["name"])
+                    if name_en and config.WAQI_TOKEN != "demo":
+                        snap = waqi_client.fetch_city_snapshot(name_en, c["name"], captured)
+                        info = {
+                            "aqi": snap["aqi"], "quality": snap["quality"],
+                            "pm25": snap["pm25"], "primary_pollutant": snap["primary_pollutant"],
+                        }
+                        logger.info("%s 实时数据来自 WAQI 兜底", c["name"])
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("WAQI %s 兜底失败: %s", c["name"], e)
             if info:
                 snapshot.append({
                     "city": c["name"], "province": None,

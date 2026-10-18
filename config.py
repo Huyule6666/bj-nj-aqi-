@@ -1,6 +1,7 @@
 """全局配置：城市、坐标、回填起点、时区、路径与重试参数（唯一常量来源）。"""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -42,7 +43,7 @@ RETRY_DELAYS = (2.0, 8.0, 30.0)  # 秒
 
 # ---- WAQI（实时数据源；其中国站点数据转自监测总站全国城市空气质量实时发布平台）----
 # 免费 token 申请：https://aqicn.org/data-platform/token/ （邮箱注册即得，约 1000 次/天）
-WAQI_TOKEN = "demo"  # TODO: 填入你自己的免费 token
+WAQI_TOKEN = os.environ.get("WAQI_TOKEN") or "demo"  # GitHub 密钥注入；本地默认 demo 跳过
 WAQI_BASE = "https://api.waqi.info"
 WAQI_TIMEOUT = 15
 WAQI_CITY_NAMES = {
