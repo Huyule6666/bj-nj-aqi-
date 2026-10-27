@@ -41,7 +41,8 @@ def import_file(city: str, path: str) -> None:
         if date in seen:
             continue
         seen.add(date)
-        rows.append({"date": date, "aqi": aqi, "quality": quality_level(aqi)})
+        rows.append({"date": date, "aqi": aqi, "quality": quality_level(aqi),
+                     "official_source": "手动导入"})
     if not rows:
         print(f"{city}: 未解析到「M/D AQI N」格式的数据")
         return

@@ -54,9 +54,10 @@ def upsert_official_aqi(city: str, rows: Iterable[dict[str, Any]]) -> int:
         return 0
     with get_conn() as conn:
         conn.executemany(
-            "UPDATE daily_air SET aqi_official=:aqi, quality_official=:quality "
-            "WHERE city=:city AND date=:date",
-            [{"city": city, "date": r["date"], "aqi": r["aqi"], "quality": r["quality"]}
+            "UPDATE daily_air SET aqi_official=:aqi, quality_official=:quality, "
+            "official_source=:official_source WHERE city=:city AND date=:date",
+            [{"city": city, "date": r["date"], "aqi": r["aqi"], "quality": r["quality"],
+              "official_source": r.get("official_source")}
              for r in rows],
         )
         return conn.total_changes
@@ -70,13 +71,15 @@ def upsert_official_daily(city: str, rows: Iterable[dict[str, Any]]) -> int:
     with get_conn() as conn:
         conn.executemany(
             """UPDATE daily_air SET
-                 aqi_official=:aqi, quality_official=:quality, primary_official=:primary,
+                 aqi_official=:aqi, quality_official=:quality, official_source=:official_source,
+                 primary_official=:primary,
                  pm25_official=:pm25, pm10_official=:pm10, so2_official=:so2,
                  no2_official=:no2, co_official=:co, o3_8h_official=:o3_8h
                WHERE city=:city AND date=:date""",
             [{
                 "city": city, "date": r["date"],
                 "aqi": r.get("aqi"), "quality": r.get("quality"),
+                "official_source": r.get("official_source"),
                 "primary": r.get("primary"),
                 "pm25": r.get("pm25"), "pm10": r.get("pm10"), "so2": r.get("so2"),
                 "no2": r.get("no2"), "co": r.get("co"), "o3_8h": r.get("o3_8h"),

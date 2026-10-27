@@ -64,6 +64,7 @@ def import_file(path: str) -> None:
             if aqi is not None and quality in _QUALITY:
                 official_rows.append({
                     "date": date, "aqi": aqi, "quality": quality,
+                    "official_source": "手动导入",
                     "primary": _s(row[3]),
                     "pm25": _f(row[4]), "pm10": _f(row[5]), "so2": _f(row[6]),
                     "no2": _f(row[7]), "co": _f(row[8]), "o3_8h": _f(row[9]),

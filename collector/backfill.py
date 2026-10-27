@@ -289,6 +289,8 @@ def _fetch_cnemc_daily(end_date: str | None = None, quiet: bool = False) -> int:
             rows = [r for r in rows
                     if r.get("date") and config.BACKFILL_START <= r["date"] <= end]
             if rows:
+                for r in rows:
+                    r["official_source"] = "cnemc"
                 n += repo.upsert_official_daily(city, rows)
                 logger.info("%s 官方每日 AQI+浓度 %d 行", city, len(rows))
         except Exception as e:  # noqa: BLE001

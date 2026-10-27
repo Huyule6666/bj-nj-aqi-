@@ -94,6 +94,7 @@ def _migrate(conn: sqlite3.Connection) -> None:
     for name, typ in [
         ("aqi_official", "REAL"),
         ("quality_official", "TEXT"),
+        ("official_source", "TEXT"),
         ("primary_official", "TEXT"),
         ("pm25_official", "REAL"),
         ("pm10_official", "REAL"),

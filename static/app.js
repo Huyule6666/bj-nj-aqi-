@@ -14,6 +14,7 @@ const GB_LEVELS = [
 // ---------- 状态 ----------
 let CITIES = [];
 let dailyByCity = {};   // 城市 -> 全部日行（升序）
+let weatherByCity = {}; // 城市 -> {date: 天气行}
 
 // ---------- 工具 ----------
 const levelOf = (aqi) => (aqi == null ? null : GB_LEVELS.find((l) => aqi <= l.max));
@@ -47,6 +48,11 @@ async function loadAll() {
     const data = await fetchJson("site_data.json");
     CITIES = data.meta.cities;
     dailyByCity = data.daily || {};
+    weatherByCity = {};
+    for (const c of CITIES) {
+      const w = data.weather?.[c];
+      if (w) weatherByCity[c] = Object.fromEntries(w.rows.map((r) => [r.date, r]));
+    }
     renderKpi(data.latest);
     renderWeather(data.weather);
     renderDetailsTables();
@@ -156,12 +162,16 @@ function renderDetailsTables() {
     const head = `<thead><tr>
       <th>日期</th><th>AQI</th><th>等级</th><th>PM2.5</th><th>PM10</th>
       <th>SO₂</th><th>NO₂</th><th>CO</th><th>O3-8h</th>
-      <th>首要污染物</th><th>来源</th></tr></thead>`;
+      <th>首要污染物</th><th>天气</th><th>温度(℃)</th><th>来源</th></tr></thead>`;
     const f = (off, mdl) => off ?? mdl ?? "—";
     const body = rows.map((r) => {
       const aqi = r.aqi_official ?? r.aqi;
       const lv = levelOf(aqi);
       const official = r.aqi_official != null;
+      const w = (weatherByCity[city] || {})[r.date];
+      const srcLabel = official
+        ? (r.official_source === "cnemc" ? "官方·监测总站" : "官方·手动导入")
+        : "模型·Open-Meteo";
       return `<tr>
         <td>${r.date}</td>
         <td class="aqi-cell"><span class="level-dot" style="background:${lv ? lv.color : "#898781"}"></span>${aqi ?? "—"}</td>
@@ -170,7 +180,9 @@ function renderDetailsTables() {
         <td>${f(r.so2_official, r.so2)}</td><td>${f(r.no2_official, r.no2)}</td><td>${f(r.co_official, r.co)}</td>
         <td>${f(r.o3_8h_official, r.o3_8h)}</td>
         <td>${esc(r.primary_official ?? r.primary_pollutant) || "无"}</td>
-        <td>${official ? "官方" : "模型"}</td>
+        <td>${w ? (esc(w.weather_text) || "—") : "—"}</td>
+        <td>${w ? `${w.temp_max ?? "—"}/${w.temp_min ?? "—"}` : "—"}</td>
+        <td>${srcLabel}</td>
       </tr>`;
     }).join("");
     tbl.innerHTML = head + `<tbody>${body}</tbody>`;
